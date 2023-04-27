@@ -8,6 +8,8 @@ import torch.nn.functional as F
 from PIL import ImageFilter
 import random
 from torchvision.transforms import InterpolationMode
+from torchvision.datasets import  ImageFolder
+
 BICUBIC = InterpolationMode.BICUBIC
 
 class GaussianBlur(object):
@@ -115,6 +117,8 @@ def get_loaders(dataset, label_class, batch_size, backbone):
         trainset = ds(root='data', train=True, download=True, transform=transform, **coarse)
         testset = ds(root='data', train=False, download=True, transform=transform, **coarse)
         trainset_1 = ds(root='data', train=True, download=True, transform=Transform(), **coarse)
+        
+        
         idx = np.array(trainset.targets) == label_class
         testset.targets = [int(t != label_class) for t in testset.targets]
         trainset.data = trainset.data[idx]
@@ -127,6 +131,37 @@ def get_loaders(dataset, label_class, batch_size, backbone):
                                                   drop_last=False)
         return train_loader, test_loader, torch.utils.data.DataLoader(trainset_1, batch_size=batch_size,
                                                                       shuffle=True, num_workers=2, drop_last=False)
+    
+    
+    
+    elif dataset == "BrainMRI":
+    
+        ds = torchvision.datasets.CIFAR10
+        transform = transform_color if backbone == 152 else transform_resnet18
+        coarse = {}
+        
+    
+        trainset = ImageFolder(root='data', train=True, download=True, transform=transform, **coarse)
+        testset = ImageFolder(root='data', train=False, download=True, transform=transform, **coarse)
+        trainset_1 = ImageFolder(root='data', train=True, download=True, transform=Transform(), **coarse)
+
+
+        indices = [i for i, val in enumerate(trainset.targets) if val==3]
+        trainset = torch.utils.data.Subset(trainset, indices)        
+
+        indices = [i for i, val in enumerate(trainset_1.targets) if val==3]
+        trainset_1 = torch.utils.data.Subset(trainset_1, indices)        
+
+        testset.samples=[(pth,int(target!=label_class)) for (pth,target) in testset.samples ]
+
+
+        train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2,
+                                                   drop_last=False)
+        test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2,
+                                                  drop_last=False)
+        return train_loader, test_loader, torch.utils.data.DataLoader(trainset_1, batch_size=batch_size,
+                                                                      shuffle=True, num_workers=2, drop_last=False)
+    
     else:
         print('Unsupported Dataset')
         exit()
