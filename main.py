@@ -99,7 +99,7 @@ def get_score(model, device, train_loader, test_loader):
     
     
     auc = roc_auc_score(test_labels, distances)
-    print("CLEAN ADV: ",auc)
+    print("CLEAN AUC: ",auc)
 
     return auc, train_feature_space
 
@@ -163,7 +163,7 @@ def get_score_adv(model_normal,model_blackbox, device, train_loader, test_loader
 
     auc = roc_auc_score(test_labels, distances)
 
-    print("AUC ADV: ",auc)
+    print("ADV AUC: ",auc)
 
     return auc, train_feature_space
 
