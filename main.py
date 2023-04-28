@@ -95,7 +95,10 @@ def get_score(model, device, train_loader, test_loader):
 
     distances = utils.knn_score(train_feature_space, test_feature_space)
 
+    
+    
     auc = roc_auc_score(test_labels, distances)
+    print("CLEAN ADV: ",auc)
 
     return auc, train_feature_space
 
@@ -126,7 +129,8 @@ class Model(torch.nn.Module):
 
 def get_score_adv(model_normal,model_blackbox, device, train_loader, test_loader):
 
-    attack=torchattacks.PGD(model_blackbox, eps=8/255, steps=100, alpha=2.5 * (8/255) / 100)
+    steps=1
+    attack=torchattacks.PGD(model_blackbox, eps=8/255, steps=steps, alpha=2.5 * (8/255) / steps)
 
     train_feature_space = []
     with torch.no_grad():
@@ -135,21 +139,30 @@ def get_score_adv(model_normal,model_blackbox, device, train_loader, test_loader
             features = model_normal(imgs)
             train_feature_space.append(features)
         train_feature_space = torch.cat(train_feature_space, dim=0).contiguous().cpu().numpy()
+        torch.cuda.empty_cache()
     test_feature_space = []
     test_labels = []
-    with torch.no_grad():
-        for (imgs, labels) in tqdm(test_loader, desc='Test set feature extracting'):
-            imgs = imgs.to(device)
-            imgs_adv=attack(imgs,labels)
-            features = model_normal(imgs_adv)
-            test_feature_space.append(features)
-            test_labels.append(labels)
-        test_feature_space = torch.cat(test_feature_space, dim=0).contiguous().cpu().numpy()
-        test_labels = torch.cat(test_labels, dim=0).cpu().numpy()
+    # with torch.no_grad():
+    for (imgs, labels) in tqdm(test_loader, desc='Test set feature extracting'):
+        imgs = imgs.to(device)
+        labels = labels.to(device)
+        imgs_adv=attack(imgs,labels)
+        features = model_normal(imgs_adv)
+        test_feature_space.append(features.detach().cpu())
+        test_labels.append(labels.detach().cpu())
+
+    # gc.collect()
+        torch.cuda.empty_cache()
+        del imgs,labels,imgs_adv,features
+
+    test_feature_space = torch.cat(test_feature_space, dim=0).contiguous().cpu().numpy()
+    test_labels = torch.cat(test_labels, dim=0).cpu().numpy()
 
     distances = utils.knn_score(train_feature_space, test_feature_space)
 
     auc = roc_auc_score(test_labels, distances)
+
+    print("AUC ADV: ",auc)
 
     return auc, train_feature_space
 
@@ -223,6 +236,7 @@ def main(args):
     train_model(model_main, train_loader, test_loader, train_loader_1, device, args)
 
 
+    get_score(model_main, device, train_loader, test_loader)
     get_score_adv(model_main,model_blackbox, device, train_loader, test_loader)
 
 
