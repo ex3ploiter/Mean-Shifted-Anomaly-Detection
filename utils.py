@@ -26,14 +26,14 @@ class GaussianBlur(object):
 
 transform_color = transforms.Compose([transforms.Resize(256),
                                       transforms.CenterCrop(224),
-                                      transforms.ToTensor(),
-                                      transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+                                      transforms.ToTensor(),])
+                                    #   transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
 transform_resnet18 = transforms.Compose([
     transforms.Resize(224, interpolation=BICUBIC),
     transforms.CenterCrop(224),
     transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
 
@@ -45,8 +45,8 @@ moco_transform = transforms.Compose([
     transforms.RandomGrayscale(p=0.2),
     transforms.RandomApply([GaussianBlur([.1, 2.])], p=0.5),
     transforms.RandomHorizontalFlip(),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+    transforms.ToTensor(),])
+    # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
 
 class Transform:
@@ -59,8 +59,8 @@ class Transform:
             transforms.RandomGrayscale(p=0.2),
             transforms.RandomApply([GaussianBlur([.1, 2.])], p=0.5),
             transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+            transforms.ToTensor(),])
+            # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
     def __call__(self, x):
         x_1 = self.moco_transform(x)
