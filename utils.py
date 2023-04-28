@@ -123,9 +123,9 @@ def get_loaders_normal(dataset, label_class, batch_size, backbone):
         ds = torchvision.datasets.CIFAR10
         transform = transform_color if backbone == 152 else transform_resnet18
         coarse = {}
-        trainset = ds(root='data', train=True, download=True, transform=transform, **coarse)
-        testset = ds(root='data', train=False, download=True, transform=transform, **coarse)
-        trainset_1 = ds(root='data', train=True, download=True, transform=Transform(), **coarse)
+        trainset = ds(root='../data', train=True, download=True, transform=transform, **coarse)
+        testset = ds(root='../data', train=False, download=True, transform=transform, **coarse)
+        trainset_1 = ds(root='../data', train=True, download=True, transform=Transform(), **coarse)
         
         
         idx = np.array(trainset.targets) == label_class
@@ -148,9 +148,9 @@ def get_loaders_normal(dataset, label_class, batch_size, backbone):
         transform = transform_color if backbone == 152 else transform_resnet18
         coarse = {}
         
-        trainset = ImageFolder(root='./Training', transform=transform)
-        testset = ImageFolder(root='./Testing', transform=transform)
-        trainset_1 = ImageFolder(root='./Training', transform=Transform())
+        trainset = ImageFolder(root='../Training', transform=transform)
+        testset = ImageFolder(root='../Testing', transform=transform)
+        trainset_1 = ImageFolder(root='../Training', transform=Transform())
 
         indices = [i for i, val in enumerate(trainset.targets) if val==3]
         trainset = torch.utils.data.Subset(trainset, indices)        
@@ -179,10 +179,10 @@ def get_loaders_normal(dataset, label_class, batch_size, backbone):
 def get_loaders_blackbox(dataset, label_class, batch_size, backbone):
     if dataset == "cifar10":
         
-        trainset = torchvision.datasets.CIFAR10(root='data', train=True, download=True, transform=transform_resnet18)
+        trainset = torchvision.datasets.CIFAR10(root='../data', train=True, download=True, transform=transform_resnet18)
         trainset.targets = [int(t!=label_class) for t in trainset.targets]
 
-        testset = torchvision.datasets.CIFAR10(root='data', train=False, download=True, transform=transform_resnet18)
+        testset = torchvision.datasets.CIFAR10(root='../data', train=False, download=True, transform=transform_resnet18)
         testset.targets  = [int(t!=label_class) for t in testset.targets]
 
         ds=torch.utils.data.ConcatDataset([trainset, testset])
@@ -194,14 +194,14 @@ def get_loaders_blackbox(dataset, label_class, batch_size, backbone):
     
     elif dataset == "BrainMRI":    
         
-        transform = transform_color if backbone == 152 else transform_resnet18
+        # transform = transform_color if backbone == 152 else transform_resnet18
         
         
-        trainset = ImageFolder(root='./Training', transform=transform)
-        testset = ImageFolder(root='./Testing', transform=transform)
+        trainset = ImageFolder(root='../Training', transform=transform_resnet18)
+        testset = ImageFolder(root='../Testing', transform=transform_resnet18)
 
         
-        trainset.samples=[(pth,label_class) for (pth,target) in trainset.samples]
+        trainset.samples=[(pth,int(target!=label_class)) for (pth,target) in trainset.samples]
         testset.samples=[(pth,int(target!=label_class)) for (pth,target) in testset.samples ]
 
 
