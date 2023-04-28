@@ -5,6 +5,8 @@ import argparse
 import utils
 from tqdm import tqdm
 import torch.nn.functional as F
+import torchvision
+import torch.nn as nn
 
 
 def contrastive_loss(out_1, out_2):
@@ -97,15 +99,42 @@ def get_score(model, device, train_loader, test_loader):
 
     return auc, train_feature_space
 
+
+class Model(torch.nn.Module):
+    def __init__(self, backbone):
+        super().__init__()
+        if backbone == 152:
+            self.backbone = torchvision.models.resnet152(pretrained=True)
+        else:
+            self.backbone = torchvision.models.resnet18(pretrained=True)
+        self.fc1=nn.Linear(1000,2)        
+    def forward(self, x):
+        z1 = self.backbone(x)        
+        z1=self.fc1(z1)
+        return z1
+
+
+
+
+
 def main(args):
     print('Dataset: {}, Normal Label: {}, LR: {}'.format(args.dataset, args.label, args.lr))
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
-    model = utils.Model(args.backbone)
-    model = model.to(device)
+    
+    model_blackbox=Model(18)
+    model_blackbox = model_blackbox.to(device)
+    train_loader_blackbox = utils.get_loaders_blackbox(dataset=args.dataset, label_class=args.label, batch_size=args.batch_size, backbone=args.backbone)
+    train_model(model_blackbox, train_loader_blackbox, device)
 
-    train_loader, test_loader, train_loader_1 = utils.get_loaders(dataset=args.dataset, label_class=args.label, batch_size=args.batch_size, backbone=args.backbone)
-    train_model(model, train_loader, test_loader, train_loader_1, device, args)
+
+
+
+    
+    model_main = utils.Model(args.backbone)
+    model_main = model_main.to(device)
+    train_loader, test_loader, train_loader_1 = utils.get_loader_normal(dataset=args.dataset, label_class=args.label, batch_size=args.batch_size, backbone=args.backbone)
+    train_model(model_main, train_loader, test_loader, train_loader_1, device, args)
 
 
 if __name__ == "__main__":
