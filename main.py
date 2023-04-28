@@ -45,6 +45,7 @@ def train_model(model, train_loader, test_loader, train_loader_1, device, args):
         auc, _ = get_score(model, device, train_loader, test_loader)
         print('Epoch: {}, AUROC is: {}'.format(epoch + 1, auc))
 
+    return model
 
 def run_epoch(model, train_loader, optimizer, center, device, is_angular):
     total_loss, total_num = 0.0, 0
@@ -129,7 +130,7 @@ class Model(torch.nn.Module):
 
 def get_score_adv(model_normal,model_blackbox, device, train_loader, test_loader):
 
-    steps=1
+    steps=10
     attack=torchattacks.PGD(model_blackbox, eps=8/255, steps=steps, alpha=2.5 * (8/255) / steps)
 
     train_feature_space = []
@@ -225,15 +226,15 @@ def main(args):
     model_blackbox = model_blackbox.to(device)
     train_loader_blackbox = utils.get_loaders_blackbox(dataset=args.dataset, label_class=args.label, batch_size=args.batch_size, backbone=args.backbone)
     
-    for epoch in range(args.epochs):
-        model=train_model_blackbox(epoch,model_blackbox, train_loader_blackbox, device)
+    for epoch in range(10):
+        model_blackbox=train_model_blackbox(epoch,model_blackbox, train_loader_blackbox, device)
 
 
     
     model_main = utils.Model(args.backbone)
     model_main = model_main.to(device)
     train_loader, test_loader, train_loader_1 = utils.get_loaders_normal(dataset=args.dataset, label_class=args.label, batch_size=args.batch_size, backbone=args.backbone)
-    train_model(model_main, train_loader, test_loader, train_loader_1, device, args)
+    model_main=train_model(model_main, train_loader, test_loader, train_loader_1, device, args)
 
 
     get_score(model_main, device, train_loader, test_loader)
