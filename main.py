@@ -131,7 +131,8 @@ class Model(torch.nn.Module):
 def get_score_adv(model_normal,model_blackbox, device, train_loader, test_loader):
 
     steps=10
-    attack=torchattacks.PGD(model_blackbox, eps=2/255, steps=steps, alpha=2.5 * (2/255) / steps)
+    eps=1/255
+    attack=torchattacks.PGD(model_blackbox, eps=eps, steps=steps, alpha=2.5 * eps / steps)
 
     train_feature_space = []
     with torch.no_grad():

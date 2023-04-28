@@ -206,6 +206,13 @@ def get_loaders_blackbox(dataset, label_class, batch_size, backbone):
 
 
 
+
+        ds=torch.utils.data.ConcatDataset([trainset, testset])
+        train_loader = torch.utils.data.DataLoader(ds, batch_size=batch_size, shuffle=True, num_workers=2)
+
+        return train_loader
+        
+
     
     else:
         print('Unsupported Dataset')
