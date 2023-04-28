@@ -103,14 +103,23 @@ def get_score(model, device, train_loader, test_loader):
 class Model(torch.nn.Module):
     def __init__(self, backbone):
         super().__init__()
+
+        mean = [0.485, 0.456, 0.406]
+        std = [0.229, 0.224, 0.225]
+
+        mu = torch.tensor(mean).view(3,1,1).cuda()
+        std = torch.tensor(std).view(3,1,1).cuda()        
+        self.norm = lambda x: ( x - mu ) / std
         if backbone == 152:
             self.backbone = torchvision.models.resnet152(pretrained=True)
         else:
             self.backbone = torchvision.models.resnet18(pretrained=True)
         self.fc1=nn.Linear(1000,2)        
     def forward(self, x):
-        z1 = self.backbone(x)        
+        x = self.norm(x)
+        z1 = self.backbone(x)
         z1=self.fc1(z1)
+        
         return z1
 
 

@@ -71,6 +71,14 @@ class Transform:
 class Model(torch.nn.Module):
     def __init__(self, backbone):
         super().__init__()
+
+        mean = [0.485, 0.456, 0.406]
+        std = [0.229, 0.224, 0.225]
+
+        mu = torch.tensor(mean).view(3,1,1).cuda()
+        std = torch.tensor(std).view(3,1,1).cuda()        
+        self.norm = lambda x: ( x - mu ) / std
+
         if backbone == 152:
             self.backbone = models.resnet152(pretrained=True)
         else:
@@ -79,6 +87,7 @@ class Model(torch.nn.Module):
         freeze_parameters(self.backbone, backbone, train_fc=False)
 
     def forward(self, x):
+        x = self.norm(x)
         z1 = self.backbone(x)
         z_n = F.normalize(z1, dim=-1)
         return z_n
