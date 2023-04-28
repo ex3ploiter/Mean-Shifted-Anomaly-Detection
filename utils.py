@@ -152,10 +152,10 @@ def get_loaders_normal(dataset, label_class, batch_size, backbone):
         testset = ImageFolder(root='../Testing', transform=transform)
         trainset_1 = ImageFolder(root='../Training', transform=Transform())
 
-        indices = [i for i, val in enumerate(trainset.targets) if val==3]
+        indices = [i for i, val in enumerate(trainset.targets) if val==2]
         trainset = torch.utils.data.Subset(trainset, indices)        
 
-        indices = [i for i, val in enumerate(trainset_1.targets) if val==3]
+        indices = [i for i, val in enumerate(trainset_1.targets) if val==2]
         trainset_1 = torch.utils.data.Subset(trainset_1, indices)        
 
         
