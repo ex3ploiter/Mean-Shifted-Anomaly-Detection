@@ -1,5 +1,5 @@
 import torch
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score,accuracy_score
 import torch.optim as optim
 import argparse
 import utils
@@ -7,7 +7,7 @@ from tqdm import tqdm
 import torch.nn.functional as F
 import torchvision
 import torch.nn as nn
-
+import torchattacks
 
 def contrastive_loss(out_1, out_2):
     out_1 = F.normalize(out_1, dim=-1)
@@ -115,6 +115,83 @@ class Model(torch.nn.Module):
 
 
 
+def get_score_adv(model_normal,model_blackbox, device, train_loader, test_loader):
+
+    attack=torchattacks.PGD(model_blackbox, eps=8/255, steps=100, alpha=2.5 * (8/255) / 100)
+
+    train_feature_space = []
+    with torch.no_grad():
+        for (imgs, _) in tqdm(train_loader, desc='Train set feature extracting'):
+            imgs = imgs.to(device)
+            features = model_normal(imgs)
+            train_feature_space.append(features)
+        train_feature_space = torch.cat(train_feature_space, dim=0).contiguous().cpu().numpy()
+    test_feature_space = []
+    test_labels = []
+    with torch.no_grad():
+        for (imgs, labels) in tqdm(test_loader, desc='Test set feature extracting'):
+            imgs = imgs.to(device)
+            imgs_adv=attack(imgs,labels)
+            features = model_normal(imgs_adv)
+            test_feature_space.append(features)
+            test_labels.append(labels)
+        test_feature_space = torch.cat(test_feature_space, dim=0).contiguous().cpu().numpy()
+        test_labels = torch.cat(test_labels, dim=0).cpu().numpy()
+
+    distances = utils.knn_score(train_feature_space, test_feature_space)
+
+    auc = roc_auc_score(test_labels, distances)
+
+    return auc, train_feature_space
+
+
+
+def train_model_blackbox(epoch, model, trainloader, device): 
+    model.train()
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+    criterion = nn.CrossEntropyLoss()
+
+    soft = torch.nn.Softmax(dim=1)
+
+    preds = []
+    anomaly_scores = []
+    true_labels = []
+    running_loss = 0
+    accuracy = 0
+
+    
+    with tqdm(trainloader, unit="batch") as tepoch:
+        torch.cuda.empty_cache()
+        for i, (data, targets) in enumerate(tepoch):
+            tepoch.set_description(f"Epoch {epoch + 1}")
+            data, targets = data.to(device), targets.to(device)
+
+            optimizer.zero_grad()
+
+            outputs = model(data)
+            loss = criterion(outputs, targets)
+            loss.backward()
+            optimizer.step()
+
+            true_labels += targets.detach().cpu().numpy().tolist()
+
+            predictions = outputs.argmax(dim=1, keepdim=True).squeeze()
+            preds += predictions.detach().cpu().numpy().tolist()
+            correct = (torch.tensor(preds) == torch.tensor(true_labels)).sum().item()
+            accuracy = correct / len(preds)
+
+            probs = soft(outputs).squeeze()
+            anomaly_scores += probs[:, 1].detach().cpu().numpy().tolist()
+
+            running_loss += loss.item() * data.size(0)
+
+            tepoch.set_postfix(loss=running_loss / len(preds), accuracy=100. * accuracy)
+
+        print("AUC : ",roc_auc_score(true_labels, anomaly_scores) )
+        print("accuracy_score : ",accuracy_score(true_labels, preds, normalize=True) )
+
+    return  model
+
 
 
 def main(args):
@@ -125,9 +202,9 @@ def main(args):
     model_blackbox=Model(18)
     model_blackbox = model_blackbox.to(device)
     train_loader_blackbox = utils.get_loaders_blackbox(dataset=args.dataset, label_class=args.label, batch_size=args.batch_size, backbone=args.backbone)
-    train_model(model_blackbox, train_loader_blackbox, device)
-
-
+    
+    for epoch in range(args.epochs):
+        model=train_model_blackbox(epoch,model_blackbox, train_loader_blackbox, device)
 
 
     
@@ -135,6 +212,9 @@ def main(args):
     model_main = model_main.to(device)
     train_loader, test_loader, train_loader_1 = utils.get_loader_normal(dataset=args.dataset, label_class=args.label, batch_size=args.batch_size, backbone=args.backbone)
     train_model(model_main, train_loader, test_loader, train_loader_1, device, args)
+
+
+    get_score_adv(model_main,model_blackbox, device, train_loader, test_loader)
 
 
 if __name__ == "__main__":
