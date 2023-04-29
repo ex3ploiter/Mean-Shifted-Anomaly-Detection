@@ -148,16 +148,16 @@ def get_loaders_normal(dataset, label_class, batch_size, backbone):
         transform = transform_color if backbone == 152 else transform_resnet18
         coarse = {}
 
-        if dataset == "BrainMRI" : #
-            path1='../Training'
-            path2='../Testing'
-        elif dataset == "X-ray" : #
+        if dataset == "BrainMRI" : # 2
+            path1='/mnt/new_drive/Masoud_WorkDir/MeanShift_Tests/Training'
+            path2='/mnt/new_drive/Masoud_WorkDir/MeanShift_Tests/Testing'
+        elif dataset == "X-ray" : # 0
             path1='/mnt/new_drive/Sepehr/chest_xray/train'
             path2='/mnt/new_drive/Sepehr/chest_xray/test'
 
         elif dataset == "Head-CT" :# 1
-            path1='../head_ct/Train/'
-            path2='../head_ct/Test/'
+            path1='/mnt/new_drive/Masoud_WorkDir/Transformaly_Test/head_ct/Train/'
+            path2='/mnt/new_drive/Masoud_WorkDir/Transformaly_Test/head_ct/Test/'
 
 
 
@@ -166,10 +166,10 @@ def get_loaders_normal(dataset, label_class, batch_size, backbone):
         testset = ImageFolder(root=path2, transform=transform)
         trainset_1 = ImageFolder(root=path1, transform=Transform())
 
-        indices = [i for i, val in enumerate(trainset.targets) if val==2]
+        indices = [i for i, val in enumerate(trainset.targets) if val==label_class]
         trainset = torch.utils.data.Subset(trainset, indices)        
 
-        indices = [i for i, val in enumerate(trainset_1.targets) if val==2]
+        indices = [i for i, val in enumerate(trainset_1.targets) if val==label_class]
         trainset_1 = torch.utils.data.Subset(trainset_1, indices)        
 
         
@@ -182,9 +182,18 @@ def get_loaders_normal(dataset, label_class, batch_size, backbone):
                                                    drop_last=False)
         test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2,
                                                   drop_last=False)
+        
+        
+        print(f'Len of trainset : {len(trainset)}')
+        print(f'Len of testset : {len(testset)}')
+        
+        
+        
         return train_loader, test_loader, torch.utils.data.DataLoader(trainset_1, batch_size=batch_size,
                                                                       shuffle=True, num_workers=2, drop_last=False)
     
+
+
     else:
         print('Unsupported Dataset')
         exit()
@@ -210,15 +219,15 @@ def get_loaders_blackbox(dataset, label_class, batch_size, backbone):
         
         # transform = transform_color if backbone == 152 else transform_resnet18
         if dataset == "BrainMRI" : # 2
-            path1='../Training'
-            path2='../Testing'
+            path1='/mnt/new_drive/Masoud_WorkDir/MeanShift_Tests/Training'
+            path2='/mnt/new_drive/Masoud_WorkDir/MeanShift_Tests/Testing'
         elif dataset == "X-ray" : # 0
             path1='/mnt/new_drive/Sepehr/chest_xray/train'
             path2='/mnt/new_drive/Sepehr/chest_xray/test'
 
         elif dataset == "Head-CT" :# 1
-            path1='../head_ct/Train/'
-            path2='../head_ct/Test/'
+            path1='/mnt/new_drive/Masoud_WorkDir/Transformaly_Test/head_ct/Train/'
+            path2='/mnt/new_drive/Masoud_WorkDir/Transformaly_Test/head_ct/Test/'
         
         
         trainset = ImageFolder(root=path1, transform=transform_resnet18)
