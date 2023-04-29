@@ -9,6 +9,7 @@ from PIL import ImageFilter
 import random
 from torchvision.transforms import InterpolationMode
 from torchvision.datasets import  ImageFolder
+from tqdm import tqdm
 
 BICUBIC = InterpolationMode.BICUBIC
 
@@ -261,7 +262,7 @@ class Wrap_Model(torch.nn.Module):
         self.train_feature_space = []
         with torch.no_grad():
             for (imgs, _) in tqdm(train_loader, desc='Train set feature extracting'):
-                imgs = imgs.to(device)
+                imgs = imgs.to('cuda')
                 features = self.model(imgs)
                 self.train_feature_space.append(features.detach().cpu())
             self.train_feature_space = torch.cat(self.train_feature_space, dim=0).contiguous().cpu().numpy()

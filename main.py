@@ -10,6 +10,7 @@ import torch.nn as nn
 import torchattacks
 from utils import *
 from simba import *
+from tqdm import tqdm
 
 
 def contrastive_loss(out_1, out_2):
@@ -141,7 +142,7 @@ class Model(torch.nn.Module):
 
 
 def get_score_adv(model_normal, device, train_loader, test_loader):
-    x_model = Wrap_Model(model_main, train_loader)
+    x_model = Wrap_Model(model_normal, train_loader)
 
     t = []
     l = []
@@ -244,7 +245,7 @@ def main(args):
 
 
     get_score(model_main, device, train_loader, test_loader)
-    get_score_adv(model_main,model_blackbox, device, train_loader, test_loader)
+    get_score_adv(model_main, device, train_loader, test_loader)
 
 
 if __name__ == "__main__":
