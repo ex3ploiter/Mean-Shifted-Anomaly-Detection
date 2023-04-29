@@ -143,7 +143,7 @@ def get_loaders_normal(dataset, label_class, batch_size, backbone):
     
     
     
-    elif dataset == "BrainMRI":    
+    elif dataset == "BrainMRI" or dataset == "X-ray" or dataset == "Head-CT":    
         
         transform = transform_color if backbone == 152 else transform_resnet18
         coarse = {}
@@ -206,7 +206,7 @@ def get_loaders_blackbox(dataset, label_class, batch_size, backbone):
         
     
     
-    elif dataset == "BrainMRI":    
+    elif dataset == "BrainMRI" or dataset == "X-ray" or dataset == "Head-CT":    
         
         # transform = transform_color if backbone == 152 else transform_resnet18
         if dataset == "BrainMRI" : # 2
