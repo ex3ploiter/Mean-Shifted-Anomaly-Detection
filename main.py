@@ -31,6 +31,7 @@ def contrastive_loss(out_1, out_2):
 
 
 def train_model(model, train_loader, test_loader, train_loader_1, device, args):
+    args.angular=True
     model.eval()
     auc, feature_space = get_score(model, device, train_loader, test_loader)
     print('Epoch: {}, AUROC is: {}'.format(0, auc))
@@ -234,14 +235,14 @@ def main(args):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
     
-    model_blackbox=Model(18)
-    model_blackbox = model_blackbox.to(device)
-    train_loader_blackbox = utils.get_loaders_blackbox(dataset=args.dataset, label_class=args.label, batch_size=args.batch_size, backbone=args.backbone)
+    # model_blackbox=Model(18)
+    # model_blackbox = model_blackbox.to(device)
+    # train_loader_blackbox = utils.get_loaders_blackbox(dataset=args.dataset, label_class=args.label, batch_size=args.batch_size, backbone=args.backbone)
 
     
     
-    for epoch in range(10):
-        model_blackbox=train_model_blackbox(epoch,model_blackbox, train_loader_blackbox, device)
+    # for epoch in range(10):
+    #     model_blackbox=train_model_blackbox(epoch,model_blackbox, train_loader_blackbox, device)
 
 
     
