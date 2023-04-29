@@ -218,6 +218,16 @@ def train_model_blackbox(epoch, model, trainloader, device):
 
 
 
+
+def load_pretrain_robust(model):
+    checkpoint = torch.load("../resnet18_linf_eps8.0.ckpt")
+    state_dict_path = 'model'
+    sd = checkpoint[state_dict_path]
+    sd = {k[len('module.'):]:v for k,v in sd.items()}
+    sd_t = {k[len('attacker.model.'):]:v for k,v in sd.items() if k.split('.')[0]=='attacker' and k.split('.')[1]!='normalize'}
+    model.load_state_dict(sd_t)
+    return model
+    
 def main(args):
     print('Dataset: {}, Normal Label: {}, LR: {}'.format(args.dataset, args.label, args.lr))
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -226,6 +236,8 @@ def main(args):
     model_blackbox=Model(18)
     model_blackbox = model_blackbox.to(device)
     train_loader_blackbox = utils.get_loaders_blackbox(dataset=args.dataset, label_class=args.label, batch_size=args.batch_size, backbone=args.backbone)
+
+    model_blackbox=load_pretrain_robust(model_blackbox)
     
     for epoch in range(10):
         model_blackbox=train_model_blackbox(epoch,model_blackbox, train_loader_blackbox, device)
