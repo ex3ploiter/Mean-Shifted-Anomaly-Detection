@@ -147,10 +147,24 @@ def get_loaders_normal(dataset, label_class, batch_size, backbone):
         
         transform = transform_color if backbone == 152 else transform_resnet18
         coarse = {}
-        
-        trainset = ImageFolder(root='../Training', transform=transform)
-        testset = ImageFolder(root='../Testing', transform=transform)
-        trainset_1 = ImageFolder(root='../Training', transform=Transform())
+
+        if dataset == "BrainMRI" : #
+            path1='../Training'
+            path2='../Testing'
+        elif dataset == "X-ray" : #
+            path1='/mnt/new_drive/Sepehr/chest_xray/train'
+            path2='/mnt/new_drive/Sepehr/chest_xray/test'
+
+        elif dataset == "Head-CT" :# 1
+            path1='../head_ct/Train/'
+            path2='../head_ct/Test/'
+
+
+
+
+        trainset = ImageFolder(root=path1, transform=transform)
+        testset = ImageFolder(root=path2, transform=transform)
+        trainset_1 = ImageFolder(root=path1, transform=Transform())
 
         indices = [i for i, val in enumerate(trainset.targets) if val==2]
         trainset = torch.utils.data.Subset(trainset, indices)        
@@ -195,10 +209,20 @@ def get_loaders_blackbox(dataset, label_class, batch_size, backbone):
     elif dataset == "BrainMRI":    
         
         # transform = transform_color if backbone == 152 else transform_resnet18
+        if dataset == "BrainMRI" : # 2
+            path1='../Training'
+            path2='../Testing'
+        elif dataset == "X-ray" : # 0
+            path1='/mnt/new_drive/Sepehr/chest_xray/train'
+            path2='/mnt/new_drive/Sepehr/chest_xray/test'
+
+        elif dataset == "Head-CT" :# 1
+            path1='../head_ct/Train/'
+            path2='../head_ct/Test/'
         
         
-        trainset = ImageFolder(root='../Training', transform=transform_resnet18)
-        testset = ImageFolder(root='../Testing', transform=transform_resnet18)
+        trainset = ImageFolder(root=path1, transform=transform_resnet18)
+        testset = ImageFolder(root=path2, transform=transform_resnet18)
 
         
         trainset.samples=[(pth,int(target!=label_class)) for (pth,target) in trainset.samples]
