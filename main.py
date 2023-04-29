@@ -8,6 +8,9 @@ import torch.nn.functional as F
 import torchvision
 import torch.nn as nn
 import torchattacks
+from utils import *
+from simba import *
+
 
 def contrastive_loss(out_1, out_2):
     out_1 = F.normalize(out_1, dim=-1)
@@ -137,42 +140,26 @@ class Model(torch.nn.Module):
 
 
 
-def get_score_adv(model_normal,model_blackbox, device, train_loader, test_loader):
+def get_score_adv(model_normal, device, train_loader, test_loader):
+    x_model = Wrap_Model(model_main, train_loader)
 
-    steps=10
-    eps=1/255
-    attack=torchattacks.PGD(model_blackbox, eps=eps, steps=steps, alpha=2.5 * eps / steps)
-
-    train_feature_space = []
-    with torch.no_grad():
-        for (imgs, _) in tqdm(train_loader, desc='Train set feature extracting'):
-            imgs = imgs.to(device)
-            features = model_normal(imgs)
-            train_feature_space.append(features)
-        train_feature_space = torch.cat(train_feature_space, dim=0).contiguous().cpu().numpy()
-        torch.cuda.empty_cache()
-    test_feature_space = []
-    test_labels = []
-    # with torch.no_grad():
-    for (imgs, labels) in tqdm(test_loader, desc='Test set feature extracting'):
+    t = []
+    l = []
+    image_size = 224
+    attack = SimBA(x_model, '', image_size)
+    for (imgs, labels) in tqdm(test_loader, desc='Test set adversarial feature extracting'):
         imgs = imgs.to(device)
         labels = labels.to(device)
-        imgs_adv=attack(imgs,labels)
-        features = model_normal(imgs_adv)
-        test_feature_space.append(features.detach().cpu())
-        test_labels.append(labels.detach().cpu())
+        #adv_imgs, adv_imgs_in, adv_imgs_out, labels= test_attack(imgs, labels)
+        adv_data, _, _, _, _, _ = attack.simba_batch(
+                imgs, labels, 10000, 224, 7, 1/255, linf_bound=0,
+                order='rand', targeted=False, pixel_attack=True, log_every=0)
+        t.append(x_model(adv_data))
+        l.append(labels)
 
-    # gc.collect()
-        torch.cuda.empty_cache()
-        del imgs,labels,imgs_adv,features
-
-    test_feature_space = torch.cat(test_feature_space, dim=0).contiguous().cpu().numpy()
-    test_labels = torch.cat(test_labels, dim=0).cpu().numpy()
-
-    distances = utils.knn_score(train_feature_space, test_feature_space)
-
-    auc = roc_auc_score(test_labels, distances)
-
+    t = np.concatenate(t)
+    l = torch.cat(l).cpu().detach().numpy()
+        
     print("ADV AUC: ",auc)
 
     return auc, train_feature_space
@@ -234,6 +221,10 @@ def main(args):
     print('Dataset: {}, Normal Label: {}, LR: {}'.format(args.dataset, args.label, args.lr))
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
+
+
+    
+
     
     # model_blackbox=Model(18)
     # model_blackbox = model_blackbox.to(device)

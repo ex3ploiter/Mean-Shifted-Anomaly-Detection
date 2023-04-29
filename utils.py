@@ -250,3 +250,30 @@ def get_loaders_blackbox(dataset, label_class, batch_size, backbone):
     else:
         print('Unsupported Dataset')
         exit()        
+
+
+class Wrap_Model(torch.nn.Module):
+    def __init__(self, model, train_loader):
+        super().__init__()
+
+        self.model = model
+
+        self.train_feature_space = []
+        with torch.no_grad():
+            for (imgs, _) in tqdm(train_loader, desc='Train set feature extracting'):
+                imgs = imgs.to(device)
+                features = self.model(imgs)
+                self.train_feature_space.append(features.detach().cpu())
+            self.train_feature_space = torch.cat(self.train_feature_space, dim=0).contiguous().cpu().numpy()
+
+        self.mean_train = torch.mean(torch.Tensor(self.train_feature_space), axis=0)
+
+
+    def forward(self, x):
+        test_adversarial_feature_space = []
+        features = self.model(x)
+        test_adversarial_feature_space.append(features.detach().cpu())
+        test_adversarial_feature_space = torch.cat(test_adversarial_feature_space).detach().cpu().numpy()
+        distances = knn_score(self.train_feature_space, test_adversarial_feature_space)
+        
+        return distances        
