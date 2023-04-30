@@ -157,8 +157,8 @@ def get_loaders_normal(dataset, label_class, batch_size, backbone):
             path2='/mnt/new_drive/Sepehr/chest_xray/test'
 
         elif dataset == "Head-CT" :# 1
-            path1='/mnt/new_drive/Masoud_WorkDir/MeanShift_Tests/HEAD_CT/Train'
-            path2='/mnt/new_drive/Masoud_WorkDir/MeanShift_Tests/HEAD_CT/Test'
+            path1='/mnt/new_drive/Masoud_WorkDir/Test_Hamid/HEAD_CT/Train'
+            path2='/mnt/new_drive/Masoud_WorkDir/Test_Hamid/HEAD_CT/Test'
 
 
 
@@ -181,7 +181,7 @@ def get_loaders_normal(dataset, label_class, batch_size, backbone):
 
         train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2,
                                                    drop_last=False)
-        test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2,
+        test_loader = torch.utils.data.DataLoader(testset, batch_size=30, shuffle=False, num_workers=2,
                                                   drop_last=False)
         
         
@@ -227,8 +227,8 @@ def get_loaders_blackbox(dataset, label_class, batch_size, backbone):
             path2='/mnt/new_drive/Sepehr/chest_xray/test'
 
         elif dataset == "Head-CT" :# 1
-            path1='/mnt/new_drive/Masoud_WorkDir/MeanShift_Tests/HEAD_CT/Train'
-            path2='/mnt/new_drive/Masoud_WorkDir/MeanShift_Tests/HEAD_CT/Test'
+            path1='/mnt/new_drive/Masoud_WorkDir/Test_Hamid/HEAD_CT/Train'
+            path2='/mnt/new_drive/Masoud_WorkDir/Test_Hamid/HEAD_CT/Test'
         
         
         trainset = ImageFolder(root=path1, transform=transform_resnet18)

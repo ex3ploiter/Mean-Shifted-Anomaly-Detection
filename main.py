@@ -153,7 +153,7 @@ def get_score_adv(model_normal, device, train_loader, test_loader):
         labels = labels.to(device)
         #adv_imgs, adv_imgs_in, adv_imgs_out, labels= test_attack(imgs, labels)
         adv_data, _, _, _, _, _ = attack.simba_batch(
-                imgs, labels, 10000, 224, 7, 1/255, linf_bound=0,
+                imgs, labels, 10000, 224, 7, 2/255, linf_bound=0,
                 order='rand', targeted=False, pixel_attack=True, log_every=0)
         t.append(x_model(adv_data))
         l.append(labels)
