@@ -157,8 +157,8 @@ def get_loaders_normal(dataset, label_class, batch_size, backbone):
             path2='/mnt/new_drive/Sepehr/chest_xray/test'
 
         elif dataset == "Head-CT" :# 1
-            path1='/mnt/new_drive/Masoud_WorkDir/Test_Hamid/HEAD_CT/Train'
-            path2='/mnt/new_drive/Masoud_WorkDir/Test_Hamid/HEAD_CT/Test'
+            path1='./HEAD_CT/Train'
+            path2='./HEAD_CT/Test'
 
 
 
@@ -227,8 +227,8 @@ def get_loaders_blackbox(dataset, label_class, batch_size, backbone):
             path2='/mnt/new_drive/Sepehr/chest_xray/test'
 
         elif dataset == "Head-CT" :# 1
-            path1='/mnt/new_drive/Masoud_WorkDir/Test_Hamid/HEAD_CT/Train'
-            path2='/mnt/new_drive/Masoud_WorkDir/Test_Hamid/HEAD_CT/Test'
+            path1='./HEAD_CT/Train'
+            path2='./HEAD_CT/Test'
         
         
         trainset = ImageFolder(root=path1, transform=transform_resnet18)
