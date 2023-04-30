@@ -161,9 +161,11 @@ def get_score_adv(model_normal, device, train_loader, test_loader):
     t = np.concatenate(t)
     l = torch.cat(l).cpu().detach().numpy()
         
+    auc=roc_auc_score(l, t)
+    
     print("ADV AUC: ",auc)
 
-    return auc, train_feature_space
+    return auc
 
 
 
@@ -245,6 +247,7 @@ def main(args):
 
 
     get_score(model_main, device, train_loader, test_loader)
+    print("\n Attacking \n")
     get_score_adv(model_main, device, train_loader, test_loader)
 
 
